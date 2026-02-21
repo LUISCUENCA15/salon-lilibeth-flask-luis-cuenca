@@ -1,14 +1,22 @@
-from flask import Flask
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return '¡Bienvenido al Salón de Belleza Lilibeth Rodríguez - Reservas y Servicios Premium!'
+    return render_template('index.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/servicios')  # ← NUEVA RUTA
+def servicios():
+    return render_template('servicios.html')
 
 @app.route('/servicio/<nombre>')
 def servicio(nombre):
-    return f'¡Bienvenido, {nombre}! Tu cita está confirmada en Lilibeth Rodríguez.'
+    return render_template('servicios.html', nombre=nombre)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Servicio - {{ nombre }}{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h2 class="text-danger mb-4">✨ ¡Cita Confirmada!</h2>
+    <div class="card mx-auto" style="max-width: 500px;">
+        <div class="card-body">
+            <h5 class="card-title">Cliente: {{ nombre }}</h5>
+            <p class="card-text">Tu reserva está confirmada en Salón Lilibeth Rodríguez.</p>
+            <a href="/" class="btn btn-outline-danger">Volver al Inicio</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

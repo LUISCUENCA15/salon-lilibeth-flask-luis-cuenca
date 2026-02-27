@@ -1,28 +1,166 @@
 {% extends "base.html" %}
-{% block title %}Inventario - Lilibeth{% endblock %}
+{% block title %}Gestión Inventario - Lilibeth{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2 class="text-danger mb-4">📦 Inventario de Productos y trabajos que se realizan</h2>
-        <p class="fs-6 text-muted mb-4"> Revisa nuestro inventario actualizado de productos y servicios, asi como tambien para una mejor atencion, cotiza con nosotros sin ningun compromiso.</p>
+<div class="container">
+    <h2 class="text-danger mb-4">🔧 Gestión Inventario Salón Lilibeth</h2>
+    
+    <!-- SUBMENÚ CRUD -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <button class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#añadirModal">
+                ➕ Añadir Producto
+            </button>
+        </div>
+        <div class="col-md-5">
+            <div class="input-group">
+                <input type="text" id="buscarInput" class="form-control" placeholder="🔍 Nombre producto (ej: keratina)">
+                <button class="btn btn-primary" onclick="buscarProducto()">Buscar</button>
+                <button class="btn btn-info" onclick="mostrarTodos()">📋 Todos</button>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <a href="/" class="btn btn-outline-danger w-100">← Volver Inicio</a>
+        </div>
+    </div>
+
+    <!-- TABLA PRODUCTOS -->
+    <div class="table-responsive">
         <table class="table table-hover">
             <thead class="table-danger">
                 <tr>
-                    <th>ID</th><th>Producto</th><th>Cantidad</th><th>Precio</th>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="productosBody">
                 {% for producto in productos %}
                 <tr>
-                    <td>{{ producto.id_producto }}</td>
+                    <td><strong>{{ producto.id_producto }}</strong></td>
                     <td>{{ producto.nombre }}</td>
                     <td><span class="badge bg-warning">{{ producto.cantidad }}</span></td>
-                    <td><strong>${{ "%.2f"|format(producto.precio) }}</strong></td>
+                    <td><strong class="text-success">${{ "%.2f"|format(producto.precio) }}</strong></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm me-1" onclick="editar({{ producto.id_producto }}, '{{ producto.nombre }}', {{ producto.cantidad }}, {{ producto.precio }})">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminar({{ producto.id_producto }})">🗑️</button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <a href="/" class="btn btn-outline-danger">← Volver Inicio</a>
+    </div>
+
+    {% if not productos %}
+    <div class="alert alert-info text-center">
+        No se encontraron productos. <a href="/admin/inventario">Mostrar todos</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- MODAL AÑADIR PRODUCTO -->
+<div class="modal fade" id="añadirModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">➕ Nuevo Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin/inventario" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="accion" value="añadir">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Producto:</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Ej: Champú reparador" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad:</label>
+                        <input type="number" name="cantidad" class="form-control" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Precio ($):</label>
+                        <input type="number" name="precio" step="0.01" class="form-control" min="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">💾 Guardar Producto</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+
+<!-- MODAL EDITAR PRODUCTO -->
+<div class="modal fade" id="editarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">✏️ Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formEditar" action="/admin/actualizar" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="id_producto" id="editId">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre:</label>
+                        <input type="text" name="nombre" id="editNombre" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Cantidad:</label>
+                            <input type="number" name="cantidad" id="editCantidad" class="form-control" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Precio ($):</label>
+                            <input type="number" name="precio" id="editPrecio" step="0.01" class="form-control" min="0.01" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">💾 Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function buscarProducto() {
+    let termino = document.getElementById('buscarInput').value.trim();
+    if(termino.length >= 2) {
+        window.location.href = '/admin/buscar/' + encodeURIComponent(termino);
+    } else {
+        alert('Escribe al menos 2 letras para buscar');
+    }
+}
+
+function mostrarTodos() {
+    window.location.href = '/admin/inventario';
+}
+
+function eliminar(id) {
+    if(confirm('¿Eliminar producto ID ' + id + '?')) {
+        window.location.href = '/admin/eliminar/' + id;
+    }
+}
+
+function editar(id, nombre, cantidad, precio) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editNombre').value = nombre;
+    document.getElementById('editCantidad').value = cantidad;
+    document.getElementById('editPrecio').value = precio;
+    new bootstrap.Modal(document.getElementById('editarModal')).show();
+}
+
+// Enter en buscar
+document.getElementById('buscarInput').addEventListener('keypress', function(e) {
+    if(e.key === 'Enter') {
+        buscarProducto();
+    }
+});
+</script>
 {% endblock %}

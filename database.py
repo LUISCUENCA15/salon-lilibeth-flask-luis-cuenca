@@ -47,3 +47,26 @@ def eliminar_producto(id_producto):
     cursor.execute("DELETE FROM productos WHERE id_producto = ?", (id_producto,))
     conn.commit()
     conn.close()
+
+# 🚀 NUEVAS FUNCIONES CRUD - AGREGAR AL FINAL:
+def actualizar_producto(id_producto, cantidad=None, precio=None):
+    conn = sqlite3.connect('salon.db')
+    cursor = conn.cursor()
+    if cantidad is not None and precio is not None:
+        cursor.execute("UPDATE productos SET cantidad=?, precio=? WHERE id_producto=?", 
+                      (cantidad, precio, id_producto))
+    elif cantidad is not None:
+        cursor.execute("UPDATE productos SET cantidad=? WHERE id_producto=?", (cantidad, id_producto))
+    elif precio is not None:
+        cursor.execute("UPDATE productos SET precio=? WHERE id_producto=?", (precio, id_producto))
+    conn.commit()
+    conn.close()
+    return True
+
+def buscar_producto(nombre):
+    conn = sqlite3.connect('salon.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM productos WHERE nombre LIKE ?", (f'%{nombre}%',))
+    rows = cursor.fetchall()
+    conn.close()
+    return [Producto(*row) for row in rows]

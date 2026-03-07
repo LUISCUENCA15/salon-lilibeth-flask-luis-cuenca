@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Persistencia Datos - Lilibeth{% endblock %}
+{% block content %}
+<div class="container">
+    <h2 class="text-danger mb-4">💾 Persistencia de Datos - Semana 12</h2>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="/admin/inventario" class="btn btn-outline-danger me-2">🔧 Admin Inventario</a>
+            <a href="/" class="btn btn-outline-primary">🏠 Inicio</a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <h4>📄 TXT</h4>
+            <pre class="bg-light p-3 rounded border">{{ txt_content }}</pre>
+            <a href="/datos/txt" class="btn btn-secondary btn-sm">🔄 Recargar TXT</a>
+        </div>
+        <div class="col-md-6 mb-4">
+            <h4>📋 JSON</h4>
+            <pre class="bg-light p-3 rounded border">{{ json_content }}</pre>
+            <a href="/datos/json" class="btn btn-secondary btn-sm">🔄 Recargar JSON</a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <h4>📊 CSV</h4>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    {% for row in csv_content %}
+                    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <a href="/datos/csv" class="btn btn-secondary btn-sm">🔄 Recargar CSV</a>
+        </div>
+        <div class="col-md-6 mb-4">
+            <h4>🗄️ SQLAlchemy</h4>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr><th>ID</th><th>Producto</th><th>Cant.</th><th>Precio</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for prod in sqlalchemy_productos %}
+                        <tr>
+                            <td>{{ prod.id_producto }}</td>
+                            <td>{{ prod.nombre }}</td>
+                            <td>{{ prod.cantidad }}</td>
+                            <td>${{ "%.2f"|format(prod.precio) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <a href="/datos/sqlalchemy" class="btn btn-secondary btn-sm">🔄 Recargar SQLAlchemy</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

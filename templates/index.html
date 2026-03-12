@@ -1,16 +1,153 @@
 {% extends "base.html" %}
 
-{% block title %}Inicio - Salón Lilibeth{% endblock %}
+{% block title %}💅 Salón de belleza Lilibeth Rodríguez{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <h1 class="display-4 text-danger mb-4">💇‍♀️ Bienvenido a Lilibeth Rodríguez</h1>
-        <p class="lead">El salón de belleza premium de Arenillas. Reservas y servicios exclusivos.</p>
-        <a href="/servicios" class="btn btn-danger btn-lg">Reservar Ahora</a>
-    </div>
-    <div class="col-md-4">
-        <img src="{{ url_for('static', filename='imagen/Logotipo.jpeg') }}" class="img-fluid" alt="Logo Salón Lilibeth">
+
+<style>
+.logo-pequeno {
+    display: block;
+    margin: 20px auto;
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    border: 3px solid #dc3545;
+}
+
+.contenido-principal {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    padding: 2.5rem;
+    margin: 1rem auto;
+    max-width: 900px;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    transition: all 0.3s ease;
+}
+</style>
+
+<!-- LOGO PEQUEÑO CENTRADO -->
+<div class="text-center">
+    <img src="{{ url_for('static', filename='imagen/Logotipo.jpeg') }}" 
+         alt="Logo Lilibeth" class="logo-pequeno">
+</div>
+
+<div class="container">
+    <div class="contenido-principal">
+
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-danger mb-3">
+                💅 Salón de belleza Lilibeth Rodríguez
+            </h1>
+            <p class="lead fs-5 text-muted mb-4">
+                ¡Bienvenidos a nuestro salón de belleza! Aquí encontrarás los mejores servicios para realzar tu belleza y cuidado capilar. Explora nuestras opciones y reserva tu cita hoy mismo.
+            </p>
+        </div>
+
+        <!-- CARDS PRINCIPALES -->
+        <div class="row g-4 mb-5">
+
+            <div class="col-lg-6">
+                <div class="card h-80 border-danger shadow-lg card-hover">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-cogs fa-3x text-danger mb-3"></i>
+                        <h4 class="card-title fw-bold mb-2 text-danger">🔧 Admin Inventario</h4>
+                        <a href="/admin/inventario" class="btn btn-danger btn-lg w-80 mt-2">
+                            Ver Inventario →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card h-80 border-primary shadow-lg card-hover">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                        <h4 class="card-title fw-bold mb-2 text-primary">🛒 Productos SQLAlchemy</h4>
+                        <a href="/datos/sqlalchemy" class="btn btn-primary btn-lg w-80 mt-2">
+                            Ver Productos →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 7 RUTAS -->
+        <div class="card border-success shadow-lg mb-4">
+            <div class="card-body p-4">
+
+                <div class="row g-2 text-center">
+
+                    <div class="col-xl-2 col-lg-3 col-md-3 col-sm-4 col-6">
+                        <a href="/" class="btn btn-outline-danger w-100 py-2 fs-6">🏠 Inicio</a>
+                    </div>
+
+                    <div class="col-xl-2 col-lg-3 col-md-3 col-sm-4 col-6">
+                        <a href="/about" class="btn btn-outline-danger w-100 py-2 fs-6">📄 Acerca</a>
+                    </div>
+
+                    <div class="col-xl-2 col-lg-3 col-md-3 col-sm-4 col-6">
+                        <a href="/servicios" class="btn btn-outline-danger w-100 py-2 fs-6">✂️ Citas</a>
+                    </div>
+
+                    <div class="col-xl-2 col-lg-3 col-md-3 col-sm-4 col-6">
+                        <a href="/admin/inventario" class="btn btn-outline-primary w-100 py-2 fs-6">🔧 Admin</a>
+                    </div>
+
+                    <div class="col-xl-2 col-lg-3 col-md-3 col-sm-4 col-6">
+                        <a href="/datos" class="btn btn-outline-primary w-100 py-2 fs-6">💾 Datos</a>
+                    </div>
+
+                    <div class="col-xl-2 col-lg-3 col-md-3 col-sm-4 col-6">
+                        <a href="/mysql/usuarios" class="btn btn-outline-warning w-100 py-2 fs-6">🗄️ Usuarios</a>
+                    </div>
+
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <a href="/productos" class="btn btn-outline-warning btn-lg w-100 py-2 fs-5">
+                            🛒 Productos
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- INFO LOCAL vs RENDER -->
+        <div class="row g-3">
+
+            <div class="col-md-6">
+                <div class="card border-info h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-laptop-code fa-2x text-info mb-2"></i>
+                        <h6 class="text-info fw-bold">LOCAL XAMPP</h6>
+                        <p class="text-muted small mb-0">MySQL + phpMyAdmin privadas</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card border-secondary h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-cloud fa-2x text-secondary mb-2"></i>
+                        <h6 class="text-secondary fw-bold">Render Público</h6>
+                        <p class="text-muted small mb-0">SQLite + SQLAlchemy 100%</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 </div>
+
 {% endblock %}

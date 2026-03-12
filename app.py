@@ -115,42 +115,69 @@ def datos_csv():
     except:
         return "Error CSV", 500
 
+# ===== SEMANA 13: MySQL XAMPP (Local) + Render Compatible =====
+try:
+    from conexion.conexion import init_mysql, mysql
+    MYSQL_AVAILABLE = True
+    init_mysql(app)
+except:
+    MYSQL_AVAILABLE = False
 
-# ===== SEMANA 13: MySQL XAMPP =====
-from conexion.conexion import init_mysql, mysql
-
-# Inicializar MySQL
-init_mysql(app)
+def is_local():
+    """Detecta si está corriendo LOCAL (XAMPP) o Render"""
+    return not os.environ.get('PORT')
 
 @app.route('/mysql/usuarios')
 def mysql_usuarios():
-    cursor = mysql.connection.cursor()
-    cursor.execute('SELECT * FROM usuarios')
-    usuarios = cursor.fetchall()
-    cursor.close()
-    return render_template('mysql_usuarios.html', usuarios=usuarios)
+    try:
+        if is_local() and MYSQL_AVAILABLE:
+            # LOCAL XAMPP → MySQL
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT * FROM usuarios')
+            usuarios = cursor.fetchall()
+            cursor.close()
+            return render_template('mysql_usuarios.html', usuarios=usuarios)
+    except:
+        pass
+    return render_template('mysql_info.html', tipo="usuarios")
 
 @app.route('/productos')
-def mostrar_productos():  
-    cursor = mysql.connection.cursor()
-    cursor.execute('SELECT * FROM productos')
-    productos = cursor.fetchall()
-    cursor.close()
-    return render_template('mysql_productos.html', productos=productos)
+def mostrar_productos():
+    try:
+        if is_local() and MYSQL_AVAILABLE:
+            # LOCAL XAMPP → MySQL
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT * FROM productos')
+            productos = cursor.fetchall()
+            cursor.close()
+            return render_template('mysql_productos.html', productos=productos)
+    except:
+        pass
+    return render_template('mysql_info.html', tipo="productos")
 
 @app.route('/mysql/agregar_usuario', methods=['POST'])
 def mysql_agregar_usuario():
-    cursor = mysql.connection.cursor()
-    nombre = request.form['nombre']
-    mail = request.form['mail']
-    password = request.form['password']
-    cursor.execute('INSERT INTO usuarios (nombre, mail, password) VALUES (%s, %s, %s)', 
-                   (nombre, mail, password))
-    mysql.connection.commit()
-    cursor.close()
+    try:
+        if is_local() and MYSQL_AVAILABLE:
+            cursor = mysql.connection.cursor()
+            nombre = request.form['nombre']
+            mail = request.form['mail']
+            password = request.form['password']
+            cursor.execute('INSERT INTO usuarios (nombre, mail, password) VALUES (%s, %s, %s)', 
+                          (nombre, mail, password))
+            mysql.connection.commit()
+            cursor.close()
+            return redirect(url_for('mysql_usuarios'))
+    except:
+        pass
     return redirect(url_for('mysql_usuarios'))
 
+# ===== RUTA FALTANTE SQLAlchemy Productos =====
+@app.route('/datos/sqlalchemy')
+def datos_sqlalchemy():
+    productos = ProductoSQLAlchemy.query.all()
+    return render_template('datos_sqlalchemy.html', productos=productos)
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
-
-
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)

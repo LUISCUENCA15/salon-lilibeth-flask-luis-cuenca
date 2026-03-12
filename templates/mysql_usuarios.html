@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Usuarios MySQL - Lilibeth{% endblock %}
+{% block content %}
+<div class="container">
+    <h2 class="text-primary mb-4">👥 Usuarios MySQL (phpMyAdmin)</h2>
+    
+    <a href="/datos" class="btn btn-secondary mb-3">💾 Persistencia Semana 12</a>
+    
+    <form method="POST" action="/mysql/agregar_usuario" class="mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <input type="text" name="nombre" class="form-control" placeholder="Nombre" required>
+            </div>
+            <div class="col-md-3">
+                <input type="email" name="mail" class="form-control" placeholder="Email" required>
+            </div>
+            <div class="col-md-3">
+                <input type="password" name="password" class="form-control" placeholder="Password" required>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-success w-100">➕ Agregar</button>
+            </div>
+        </div>
+    </form>
+    
+    <table class="table table-striped">
+        <thead>
+            <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Password</th></tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.id_usuario }}</td>
+                <td>{{ usuario.nombre }}</td>
+                <td>{{ usuario.mail }}</td>
+                <td>{{ usuario.password }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -24,9 +24,9 @@ with app.app_context():
     # Datos de ejemplo SQLAlchemy
     if not ProductoSQLAlchemy.query.first():
         productos_ejemplo = [
-            ProductoSQLAlchemy(nombre='Keratina Premium', cantidad=5, precio=100.00),
-            ProductoSQLAlchemy(nombre='Tinte Rubio', cantidad=10, precio=18.00),
-            ProductoSQLAlchemy(nombre='Botox Alisante', cantidad=3, precio=60.00)
+            ProductoSQLAlchemy(nombre='Keratina', cantidad=1, precio=100.00),
+            ProductoSQLAlchemy(nombre='Tinte Rubio', cantidad=1, precio=18.00),
+            ProductoSQLAlchemy(nombre='Botox Alisante', cantidad=1, precio=60.00)
         ]
         for prod in productos_ejemplo:
             db.session.add(prod)
@@ -80,9 +80,9 @@ def admin_buscar(nombre):
 @app.route('/datos')
 def datos():
     return render_template('datos.html', 
-                         txt_content="Cargando...",
-                         json_content="Cargando...",
-                         csv_content=[["Cargando..."]],
+                         txt_content="...",
+                         json_content="...",
+                         csv_content=[["..."]],
                          sqlalchemy_productos=[])
 
 @app.route('/datos/txt')
@@ -138,6 +138,40 @@ def datos_sqlalchemy():
     except Exception as e:
         return render_template('datos.html', sqlalchemy_productos=[], 
                              txt_content=f"Error SQLAlchemy: {str(e)}")
+
+# ===== SEMANA 13: MySQL XAMPP =====
+from conexion.conexion import init_mysql, mysql
+
+# Inicializar MySQL
+init_mysql(app)
+
+@app.route('/mysql/usuarios')
+def mysql_usuarios():
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM usuarios')
+    usuarios = cursor.fetchall()
+    cursor.close()
+    return render_template('mysql_usuarios.html', usuarios=usuarios)
+
+@app.route('/mysql/productos')
+def mysql_productos():
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM productos')
+    productos = cursor.fetchall()
+    cursor.close()
+    return render_template('mysql_productos.html', productos=productos)
+
+@app.route('/mysql/agregar_usuario', methods=['POST'])
+def mysql_agregar_usuario():
+    cursor = mysql.connection.cursor()
+    nombre = request.form['nombre']
+    mail = request.form['mail']
+    password = request.form['password']
+    cursor.execute('INSERT INTO usuarios (nombre, mail, password) VALUES (%s, %s, %s)', 
+                   (nombre, mail, password))
+    mysql.connection.commit()
+    cursor.close()
+    return redirect(url_for('mysql_usuarios'))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

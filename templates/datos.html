@@ -36,26 +36,35 @@
             </div>
             <a href="/datos/csv" class="btn btn-secondary btn-sm">🔄 Recargar CSV</a>
         </div>
-        <div class="col-md-6 mb-4">
-            <h4>🗄️ SQLAlchemy</h4>
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered">
-                    <thead class="table-light">
-                        <tr><th>ID</th><th>Producto</th><th>Cant.</th><th>Precio</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for prod in sqlalchemy_productos %}
-                        <tr>
-                            <td>{{ prod.id_producto }}</td>
-                            <td>{{ prod.nombre }}</td>
-                            <td>{{ prod.cantidad }}</td>
-                            <td>${{ "%.2f"|format(prod.precio) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <a href="/datos/sqlalchemy" class="btn btn-secondary btn-sm">🔄 Recargar SQLAlchemy</a>
+        <!-- SQLAlchemy -->
+<div class="col-md-6 mb-4">
+    <div class="card border-primary">
+        <div class="card-header bg-primary text-white">
+            <h5>🗄️ SQLAlchemy (Semana 12)</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>ID</th>
+                        <th>Producto</th>
+                        <th>Cant.</th>
+                        <th>Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in sqlalchemy_productos %}
+                    <tr>
+                        <td>{{ producto.id_producto }}</td>
+                        <td>{{ producto.nombre }}</td>
+                        <td><span class="badge bg-warning">{{ producto.cantidad }}</span></td>
+                        <td>${{ "%.2f"|format(producto.precio) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center text-muted">Sin datos SQLAlchemy</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

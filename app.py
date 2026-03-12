@@ -80,9 +80,9 @@ def admin_buscar(nombre):
 @app.route('/datos')
 def datos():
     return render_template('datos.html', 
-                         txt_content="...",
-                         json_content="...",
-                         csv_content=[["..."]],
+                         txt_content="Cargando...",
+                         json_content="Cargando...",
+                         csv_content=[["Cargando..."]],
                          sqlalchemy_productos=[])
 
 @app.route('/datos/txt')
@@ -91,53 +91,31 @@ def datos_txt():
         with open('inventario/data/datos.txt', 'r', encoding='utf-8') as f:
             content = f.read()
         return render_template('datos.html', txt_content=content)
-    except Exception as e:
-        return render_template('datos.html', txt_content=f"Error TXT: {str(e)}")
+    except:
+        return "Error TXT", 500
 
 @app.route('/datos/json')
 def datos_json():
     try:
-        # Crear JSON si no existe
-        if not os.path.exists('inventario/data/datos.json'):
-            datos = [
-                {'id_producto': 1, 'nombre': 'Keratina', 'cantidad': 1, 'precio': 100.00},
-                {'id_producto': 2, 'nombre': 'Tinte', 'cantidad': 1, 'precio': 18.00}
-            ]
-            with open('inventario/data/datos.json', 'w') as f:
-                json.dump(datos, f, indent=2)
-        
+        import json
         with open('inventario/data/datos.json', 'r') as f:
             data = json.load(f)
         return render_template('datos.html', json_content=json.dumps(data, indent=2))
-    except Exception as e:
-        return render_template('datos.html', json_content=f"Error JSON: {str(e)}")
+    except:
+        return "Error JSON", 500
 
 @app.route('/datos/csv')
 def datos_csv():
     try:
-        # Crear CSV si no existe
-        if os.path.getsize('inventario/data/datos.csv') == 0:
-            with open('inventario/data/datos.csv', 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['id', 'nombre', 'cantidad', 'precio'])
-                writer.writerow([1, 'Keratina', 1, 100.00])
-                writer.writerow([2, 'Tinte', 1, 18.00])
-        
+        import csv
         with open('inventario/data/datos.csv', 'r') as f:
             reader = csv.reader(f)
             content = list(reader)
         return render_template('datos.html', csv_content=content)
-    except Exception as e:
-        return render_template('datos.html', csv_content=[[f"Error CSV: {str(e)}"]])
+    except:
+        return "Error CSV", 500
 
-@app.route('/datos/sqlalchemy')
-def datos_sqlalchemy():
-    try:
-        productos = ProductoSQLAlchemy.query.all()
-        return render_template('datos.html', sqlalchemy_productos=productos)
-    except Exception as e:
-        return render_template('datos.html', sqlalchemy_productos=[], 
-                             txt_content=f"Error SQLAlchemy: {str(e)}")
+# ===== ELIMINADA: /SQL/productos DUPLICADA =====
 
 # ===== SEMANA 13: MySQL XAMPP =====
 from conexion.conexion import init_mysql, mysql
@@ -153,8 +131,8 @@ def mysql_usuarios():
     cursor.close()
     return render_template('mysql_usuarios.html', usuarios=usuarios)
 
-@app.route('/mysql/productos')
-def mysql_productos():
+@app.route('/productos')
+def mostrar_productos():  # ← NOMBRE DIFERENTE (sin duplicado)
     cursor = mysql.connection.cursor()
     cursor.execute('SELECT * FROM productos')
     productos = cursor.fetchall()
@@ -174,7 +152,6 @@ def mysql_agregar_usuario():
     return redirect(url_for('mysql_usuarios'))
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(debug=True, port=5000)
 
 

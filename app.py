@@ -115,7 +115,6 @@ def datos_csv():
     except:
         return "Error CSV", 500
 
-# ===== ELIMINADA: /SQL/productos DUPLICADA =====
 
 # ===== SEMANA 13: MySQL XAMPP =====
 from conexion.conexion import init_mysql, mysql
@@ -132,7 +131,7 @@ def mysql_usuarios():
     return render_template('mysql_usuarios.html', usuarios=usuarios)
 
 @app.route('/productos')
-def mostrar_productos():  # ← NOMBRE DIFERENTE (sin duplicado)
+def mostrar_productos():  
     cursor = mysql.connection.cursor()
     cursor.execute('SELECT * FROM productos')
     productos = cursor.fetchall()

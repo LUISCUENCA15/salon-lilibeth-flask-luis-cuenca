@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success shadow-lg">
+                <div class="card-header bg-success text-white text-center">
+                    <h2><i class="fas fa-user-shield"></i> Bienvenido {{ user.nombre }}</h2>
+                </div>
+                <div class="card-body p-5 text-center">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <a href="/admin/inventario" class="btn btn-danger btn-lg w-100">
+                                <i class="fas fa-cogs me-2"></i>Inventario
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/datos/sqlalchemy" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-database me-2"></i>Productos
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/logout" class="btn btn-secondary btn-lg w-100">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,3 +1,4 @@
+# TU CÓDIGO EXISTENTE (NO CAMBIAR)
 class Producto:
     def __init__(self, id_producto, nombre, cantidad, precio):
         self.id_producto = id_producto
@@ -40,3 +41,54 @@ class Inventario:
     
     def todos(self):
         return list(self.productos.values())
+
+# ===== SEMANA 14: FLASK-LOGIN con auth_usuarios =====
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
+from conexion.conexion import mysql
+
+class User(UserMixin):
+    def __init__(self, id_usuario, nombre, email, password):
+        self.id = id_usuario
+        self.nombre = nombre
+        self.email = email
+        self.password = password
+
+    @staticmethod
+    def get(user_id):
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT * FROM auth_usuarios WHERE id_usuario = %s', (user_id,))
+            user_row = cursor.fetchone()
+            cursor.close()
+            if user_row:
+                return User(user_row[0], user_row[1], user_row[2], user_row[3])
+            return None
+        except:
+            return None
+
+    @staticmethod
+    def get_by_email(email):
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT * FROM auth_usuarios WHERE email = %s', (email,))
+            user_row = cursor.fetchone()
+            cursor.close()
+            if user_row:
+                return User(user_row[0], user_row[1], user_row[2], user_row[3])
+            return None
+        except:
+            return None
+
+    @staticmethod
+    def create(nombre, email, password):
+        try:
+            hashed_password = generate_password_hash(password)
+            cursor = mysql.connection.cursor()
+            cursor.execute('INSERT INTO auth_usuarios (nombre, email, password) VALUES (%s, %s, %s)', 
+                          (nombre, email, hashed_password))
+            mysql.connection.commit()
+            cursor.close()
+            return True
+        except:
+            return False

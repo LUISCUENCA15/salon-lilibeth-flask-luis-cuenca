@@ -1,5 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from database import init_db, get_inventario, agregar_producto, eliminar_producto, actualizar_producto, buscar_producto
+from models import User
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import json
 import csv
@@ -8,11 +11,22 @@ import csv
 from inventario.productos import db, Producto as ProductoSQLAlchemy
 
 app = Flask(__name__)
+app.secret_key = 'salon-lilibeth-super-secreto-2026'  # ← OBLIGATORIO
 
 # Configuración SQLAlchemy (Semana 12)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///salon_sqlalchemy.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+
+# ===== FLASK-LOGIN INICIALIZADO PRIMERO =====
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Debes iniciar sesión'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(int(user_id))
 
 # Inicializar DB SQLite anterior (Semana 11)
 init_db()
@@ -48,8 +62,48 @@ def servicios():
 def servicio(nombre):
     return render_template('servicios.html', nombre=nombre)
 
-# ===== SEMANA 11: CRUD SQLite Anterior =====
+# ===== SEMANA 14: LOGIN (CORREGIDO) =====
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        user = User.get_by_email(email)
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('admin_panel'))
+        return render_template('login.html', error='Email o contraseña incorrectos')
+    
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        email = request.form['email']
+        password = request.form['password']
+        
+        if User.create(nombre, email, password):
+            return redirect(url_for('login'))
+        return render_template('register.html', error='Email ya registrado')
+    
+    return render_template('register.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+@app.route('/admin/panel')
+@login_required
+def admin_panel():
+    return render_template('admin_panel.html', user=current_user)
+
+# ===== SEMANA 11: CRUD SQLite (PROTEGIDO) =====
 @app.route('/admin/inventario', methods=['GET', 'POST'])
+@login_required
 def admin_inventario():
     if request.method == 'POST':
         accion = request.form['accion']
@@ -64,11 +118,13 @@ def admin_inventario():
     return render_template('admin/inventario.html', productos=productos)
 
 @app.route('/admin/eliminar/<int:id_producto>')
+@login_required
 def admin_eliminar(id_producto):
     eliminar_producto(id_producto)
     return redirect(url_for('admin_inventario'))
 
 @app.route('/admin/buscar/<nombre>')
+@login_required
 def admin_buscar(nombre):
     if nombre.strip():
         productos = buscar_producto(nombre)
@@ -76,7 +132,7 @@ def admin_buscar(nombre):
         productos = get_inventario()
     return render_template('admin/inventario.html', productos=productos)
 
-# ===== SEMANA 12: PERSISTENCIA TXT/JSON/CSV/SQLAlchemy =====
+# ===== SEMANA 12: PERSISTENCIA =====
 @app.route('/datos')
 def datos():
     return render_template('datos.html', 
@@ -115,7 +171,12 @@ def datos_csv():
     except:
         return "Error CSV", 500
 
-# ===== SEMANA 13: MySQL XAMPP (Local) + Render Compatible =====
+@app.route('/datos/sqlalchemy')
+def datos_sqlalchemy():
+    productos = ProductoSQLAlchemy.query.all()
+    return render_template('datos_sqlalchemy.html', productos=productos)
+
+# ===== SEMANA 13: MySQL =====
 try:
     from conexion.conexion import init_mysql, mysql
     MYSQL_AVAILABLE = True
@@ -124,16 +185,14 @@ except:
     MYSQL_AVAILABLE = False
 
 def is_local():
-    """Detecta si está corriendo LOCAL (XAMPP) o Render"""
     return not os.environ.get('PORT')
 
 @app.route('/mysql/usuarios')
 def mysql_usuarios():
     try:
         if is_local() and MYSQL_AVAILABLE:
-            # LOCAL XAMPP → MySQL
             cursor = mysql.connection.cursor()
-            cursor.execute('SELECT * FROM usuarios')
+            cursor.execute('SELECT * FROM auth_usuarios')
             usuarios = cursor.fetchall()
             cursor.close()
             return render_template('mysql_usuarios.html', usuarios=usuarios)
@@ -145,7 +204,6 @@ def mysql_usuarios():
 def mostrar_productos():
     try:
         if is_local() and MYSQL_AVAILABLE:
-            # LOCAL XAMPP → MySQL
             cursor = mysql.connection.cursor()
             cursor.execute('SELECT * FROM productos')
             productos = cursor.fetchall()
@@ -163,7 +221,7 @@ def mysql_agregar_usuario():
             nombre = request.form['nombre']
             mail = request.form['mail']
             password = request.form['password']
-            cursor.execute('INSERT INTO usuarios (nombre, mail, password) VALUES (%s, %s, %s)', 
+            cursor.execute('INSERT INTO auth_usuarios (nombre, email, password) VALUES (%s, %s, %s)', 
                           (nombre, mail, password))
             mysql.connection.commit()
             cursor.close()
@@ -171,12 +229,6 @@ def mysql_agregar_usuario():
     except:
         pass
     return redirect(url_for('mysql_usuarios'))
-
-# ===== RUTA FALTANTE SQLAlchemy Productos =====
-@app.route('/datos/sqlalchemy')
-def datos_sqlalchemy():
-    productos = ProductoSQLAlchemy.query.all()
-    return render_template('datos_sqlalchemy.html', productos=productos)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

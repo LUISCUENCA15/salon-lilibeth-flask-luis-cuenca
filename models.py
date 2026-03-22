@@ -1,94 +1,148 @@
-# TU CÓDIGO EXISTENTE (NO CAMBIAR)
+# ========================================
+# 🧱 PRODUCTO (OBLIGATORIO PARA database.py)
+# ========================================
 class Producto:
-    def __init__(self, id_producto, nombre, cantidad, precio):
-        self.id_producto = id_producto
+    def __init__(self, id, nombre, cantidad, precio):
+        self.id = id
         self.nombre = nombre
         self.cantidad = cantidad
         self.precio = precio
-    
-    def to_dict(self):
-        return {
-            'id_producto': self.id_producto,
-            'nombre': self.nombre,
-            'cantidad': self.cantidad,
-            'precio': self.precio
-        }
-    
-    def __str__(self):
-        return f"{self.nombre} (x{self.cantidad}) - ${self.precio}"
 
-class Inventario:
-    def __init__(self):
-        self.productos = {}
-    
-    def agregar(self, producto):
-        self.productos[producto.id_producto] = producto
-    
-    def eliminar(self, id_producto):
-        return self.productos.pop(id_producto, None)
-    
-    def actualizar(self, id_producto, cantidad=None, precio=None):
-        if id_producto in self.productos:
-            if cantidad is not None:
-                self.productos[id_producto].cantidad = cantidad
-            if precio is not None:
-                self.productos[id_producto].precio = precio
-            return True
-        return False
-    
-    def buscar(self, nombre):
-        return [p for p in self.productos.values() if nombre.lower() in p.nombre.lower()]
-    
-    def todos(self):
-        return list(self.productos.values())
 
-# ===== SEMANA 14: FLASK-LOGIN con auth_usuarios =====
-from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
-from conexion.conexion import mysql
+# ========================================
+# 👤 USER (LOGIN)
+# ========================================
+class User:
 
-class User(UserMixin):
-    def __init__(self, id_usuario, nombre, email, password):
-        self.id = id_usuario
+    def __init__(self, id, nombre, email, password):
+        self.id = id
         self.nombre = nombre
         self.email = email
         self.password = password
 
+    # 🔐 Flask-Login
+    def is_authenticated(self): return True
+    def is_active(self): return True
+    def is_anonymous(self): return False
+    def get_id(self): return str(self.id)
+
+    # ========================================
+    # 🔍 MÉTODOS MYSQL
+    # ========================================
+
     @staticmethod
-    def get(user_id):
+    def test_connection():
         try:
+            from conexion.conexion import mysql
             cursor = mysql.connection.cursor()
-            cursor.execute('SELECT * FROM auth_usuarios WHERE id_usuario = %s', (user_id,))
-            user_row = cursor.fetchone()
+            cursor.execute('SELECT COUNT(*) as total FROM auth_usuarios')
+            result = cursor.fetchone()
+            count = result['total'] if result else 0
             cursor.close()
-            if user_row:
-                return User(user_row[0], user_row[1], user_row[2], user_row[3])
-            return None
-        except:
-            return None
+            print(f"🧪 TEST OK: {count} usuarios")
+            return count
+        except Exception as e:
+            print(f"🧪 ERROR: {e}")
+            return 0
 
     @staticmethod
     def get_by_email(email):
+        print(f"🔍 Buscando: {email}")
         try:
+            from conexion.conexion import mysql
             cursor = mysql.connection.cursor()
             cursor.execute('SELECT * FROM auth_usuarios WHERE email = %s', (email,))
             user_row = cursor.fetchone()
             cursor.close()
+
+            print("📊 Resultado:", user_row)
+
             if user_row:
-                return User(user_row[0], user_row[1], user_row[2], user_row[3])
+                return User(
+                    user_row['id_usuario'],
+                    user_row['nombre'],
+                    user_row['email'],
+                    user_row['password']
+                )
             return None
-        except:
+
+        except Exception as e:
+            print(f"❌ ERROR get_by_email: {e}")
+            return None
+
+    @staticmethod
+    def get(id):
+        try:
+            from conexion.conexion import mysql
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT * FROM auth_usuarios WHERE id = %s', (id,))
+            user_row = cursor.fetchone()
+            cursor.close()
+
+            if user_row:
+                return User(
+                    user_row['id_usuario'],
+                    user_row['nombre'],
+                    user_row['email'],
+                    user_row['password']
+                )
+            return None
+
+        except Exception as e:
+            print(f"❌ ERROR get: {e}")
             return None
 
     @staticmethod
     def create(nombre, email, password):
         try:
-            hashed_password = generate_password_hash(password)
+            from conexion.conexion import mysql
             cursor = mysql.connection.cursor()
-            cursor.execute('INSERT INTO auth_usuarios (nombre, email, password) VALUES (%s, %s, %s)', 
-                          (nombre, email, hashed_password))
+
+            # Verificar si ya existe
+            cursor.execute('SELECT id FROM auth_usuarios WHERE email = %s', (email,))
+            if cursor.fetchone():
+                cursor.close()
+                return False
+
+            from werkzeug.security import generate_password_hash
+            hashed = generate_password_hash(password)
+
+            cursor.execute(
+                'INSERT INTO auth_usuarios (nombre, email, password) VALUES (%s, %s, %s)',
+                (nombre, email, hashed)
+            )
             mysql.connection.commit()
             cursor.close()
+
+            print("✅ Usuario creado")
             return True
-        except:
+
+        except Exception as e:
+            print(f"❌ ERROR create: {e}")
             return False
+
+
+# ========================================
+# 🔥 DEBUG (MUY IMPORTANTE)
+# ========================================
+class UserModel:
+
+    @staticmethod
+    def prueba_total():
+        try:
+            from conexion.conexion import mysql
+            cursor = mysql.connection.cursor()
+
+            cursor.execute("SELECT DATABASE()")
+            print("📌 DB actual:", cursor.fetchone())
+
+            cursor.execute("SELECT COUNT(*) as total FROM auth_usuarios")
+            print("📊 TOTAL usuarios:", cursor.fetchone())
+
+            cursor.execute("SELECT * FROM auth_usuarios")
+            print("📋 REGISTROS:", cursor.fetchall())
+
+            cursor.close()
+
+        except Exception as e:
+            print("❌ ERROR DEBUG:", e)

@@ -12,7 +12,9 @@ class Producto:
 # ========================================
 # 👤 USER (LOGIN)
 # ========================================
-class User:
+from flask_login import UserMixin
+
+class User(UserMixin):
 
     def __init__(self, id, nombre, email, password):
         self.id = id
@@ -20,16 +22,9 @@ class User:
         self.email = email
         self.password = password
 
-    # 🔐 Flask-Login
-    def is_authenticated(self): return True
-    def is_active(self): return True
-    def is_anonymous(self): return False
-    def get_id(self): return str(self.id)
-
     # ========================================
-    # 🔍 MÉTODOS MYSQL
+    # 🔍 TEST CONEXIÓN
     # ========================================
-
     @staticmethod
     def test_connection():
         try:
@@ -45,6 +40,9 @@ class User:
             print(f"🧪 ERROR: {e}")
             return 0
 
+    # ========================================
+    # 🔍 BUSCAR POR EMAIL
+    # ========================================
     @staticmethod
     def get_by_email(email):
         print(f"🔍 Buscando: {email}")
@@ -59,7 +57,7 @@ class User:
 
             if user_row:
                 return User(
-                    user_row['id_usuario'],
+                    user_row['id_usuario'],  # ✔ CORRECTO
                     user_row['nombre'],
                     user_row['email'],
                     user_row['password']
@@ -70,12 +68,17 @@ class User:
             print(f"❌ ERROR get_by_email: {e}")
             return None
 
+    # ========================================
+    # 🔍 BUSCAR POR ID (CRÍTICO PARA LOGIN)
+    # ========================================
     @staticmethod
     def get(id):
         try:
             from conexion.conexion import mysql
             cursor = mysql.connection.cursor()
-            cursor.execute('SELECT * FROM auth_usuarios WHERE id = %s', (id,))
+
+            # 🔥 CORREGIDO AQUÍ
+            cursor.execute('SELECT * FROM auth_usuarios WHERE id_usuario = %s', (id,))
             user_row = cursor.fetchone()
             cursor.close()
 
@@ -86,20 +89,24 @@ class User:
                     user_row['email'],
                     user_row['password']
                 )
+
             return None
 
         except Exception as e:
             print(f"❌ ERROR get: {e}")
             return None
 
+    # ========================================
+    # 🆕 CREAR USUARIO
+    # ========================================
     @staticmethod
     def create(nombre, email, password):
         try:
             from conexion.conexion import mysql
             cursor = mysql.connection.cursor()
 
-            # Verificar si ya existe
-            cursor.execute('SELECT id FROM auth_usuarios WHERE email = %s', (email,))
+            # 🔥 CORREGIDO AQUÍ
+            cursor.execute('SELECT id_usuario FROM auth_usuarios WHERE email = %s', (email,))
             if cursor.fetchone():
                 cursor.close()
                 return False
@@ -123,7 +130,7 @@ class User:
 
 
 # ========================================
-# 🔥 DEBUG (MUY IMPORTANTE)
+# 🔥 DEBUG
 # ========================================
 class UserModel:
 

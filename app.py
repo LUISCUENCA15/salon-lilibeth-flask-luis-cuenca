@@ -25,10 +25,7 @@ from models import User
 # APP
 # ========================================
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'clave_super_segura_123456'
-app.config['SESSION_TYPE'] = 'filesystem'
-from flask_session import Session
-Session(app)
+app.secret_key = 'super_secret_key_123'
 
 # ===== MYSQL =====
 if MYSQL_AVAILABLE:
@@ -91,10 +88,16 @@ def login():
 
         user = User.get_by_email(email)
 
-        if user and check_password_hash(user.password, password):
-            login_user(user, remember=True)
-            return redirect('/admin/panel')
+        if user:
+            print("USUARIO ENCONTRADO")
+            print("PASSWORD DB:", user.password)
 
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            print("LOGIN OK")
+            return redirect(url_for('admin_panel'))
+
+        print("LOGIN FALLÓ")
         return render_template('login.html', error='Credenciales incorrectas')
 
     return render_template('login.html')
@@ -131,7 +134,7 @@ def logout():
 @app.route('/admin/panel')
 @login_required
 def admin_panel():
-    print("🔥 ENTRÓ AL PANEL")
+    print("ENTRO AL PANEL")
     return render_template('admin_panel.html', user=current_user)
 
 # ========================================
@@ -239,6 +242,11 @@ def datos_csv():
 def datos_sqlalchemy():
     productos = ProductoSQLAlchemy.query.all()
     return render_template('datos_sqlalchemy.html', productos=productos)
+
+@app.route('/test')
+def test():
+    from flask_login import current_user
+    return f"Usuario actual: {current_user.is_authenticated}"
 
 # ========================================
 # RUN

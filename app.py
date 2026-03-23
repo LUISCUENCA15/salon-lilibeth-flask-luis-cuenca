@@ -25,8 +25,10 @@ from models import User
 # APP
 # ========================================
 app = Flask(__name__)
-app.config['REMEMBER_COOKIE_DURATION'] = 3600
-app.secret_key = 'salon-lilibeth-super-secreto-2026'
+app.config['SECRET_KEY'] = 'clave_super_segura_123456'
+app.config['SESSION_TYPE'] = 'filesystem'
+from flask_session import Session
+Session(app)
 
 # ===== MYSQL =====
 if MYSQL_AVAILABLE:
@@ -87,16 +89,12 @@ def login():
         email = request.form['email'].strip()
         password = request.form['password']
 
-        print(f"🔍 LOGIN: {email}")
-
         user = User.get_by_email(email)
 
         if user and check_password_hash(user.password, password):
-            login_user(user)
-            print("✅ LOGIN EXITOSO")
-            return redirect(url_for('admin_panel'))
+            login_user(user, remember=True)
+            return redirect('/admin/panel')
 
-        print("❌ LOGIN FALLIDO")
         return render_template('login.html', error='Credenciales incorrectas')
 
     return render_template('login.html')

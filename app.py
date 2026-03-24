@@ -5,6 +5,8 @@ import os
 import json
 import csv
 
+RENDER = os.environ.get("RENDER")
+
 # ===== BASE =====
 from database import init_db, get_inventario, agregar_producto, eliminar_producto, buscar_producto
 
@@ -82,22 +84,19 @@ def servicios():
 # ========================================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if RENDER:
+        return "Login desactivado en Render (sin MySQL)"
+
     if request.method == 'POST':
         email = request.form['email'].strip()
         password = request.form['password']
 
         user = User.get_by_email(email)
 
-        if user:
-            print("USUARIO ENCONTRADO")
-            print("PASSWORD DB:", user.password)
-
         if user and check_password_hash(user.password, password):
             login_user(user)
-            print("LOGIN OK")
             return redirect(url_for('admin_panel'))
 
-        print("LOGIN FALLÓ")
         return render_template('login.html', error='Credenciales incorrectas')
 
     return render_template('login.html')
@@ -157,14 +156,17 @@ def admin_inventario():
 # ========================================
 @app.route('/debug')
 def debug():
-    if not MYSQL_AVAILABLE:
-        return "MySQL no disponible"
+    if RENDER:
+        return "No disponible en Render"
 
-    cursor = mysql.connection.cursor()
-    cursor.execute('SELECT * FROM auth_usuarios')
-    data = cursor.fetchall()
-    cursor.close()
-    return f"<pre>{data}</pre>"
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM auth_usuarios')
+        usuarios = cursor.fetchall()
+        cursor.close()
+        return f"<pre>{usuarios}</pre>"
+    except Exception as e:
+        return f"<pre>{e}</pre>"
 # ========================================
 # MYSQL - USUARIOS
 # ========================================

@@ -28,7 +28,7 @@ app = Flask(__name__)
 app.secret_key = 'super_secret_key_123'
 
 # ===== MYSQL =====
-if MYSQL_AVAILABLE:
+if MYSQL_AVAILABLE and not os.environ.get("RENDER"):
     init_mysql(app)
     print("✅ MySQL conectado")
 

@@ -14,6 +14,13 @@ class Producto:
 # ========================================
 from flask_login import UserMixin
 
+# 🔥 IMPORT SEGURO (NO ROMPE SI MYSQL FALLA)
+try:
+    from conexion.conexion import mysql
+except:
+    mysql = None
+
+
 class User(UserMixin):
 
     def __init__(self, id, nombre, email, password):
@@ -23,41 +30,22 @@ class User(UserMixin):
         self.password = password
 
     # ========================================
-    # 🔍 TEST CONEXIÓN
-    # ========================================
-    @staticmethod
-    def test_connection():
-        try:
-            from conexion.conexion import mysql
-            cursor = mysql.connection.cursor()
-            cursor.execute('SELECT COUNT(*) as total FROM auth_usuarios')
-            result = cursor.fetchone()
-            count = result['total'] if result else 0
-            cursor.close()
-            print(f"🧪 TEST OK: {count} usuarios")
-            return count
-        except Exception as e:
-            print(f"🧪 ERROR: {e}")
-            return 0
-
-    # ========================================
     # 🔍 BUSCAR POR EMAIL
     # ========================================
     @staticmethod
     def get_by_email(email):
-        print(f"🔍 Buscando: {email}")
+        if not mysql:
+            return None
+
         try:
-            from conexion.conexion import mysql
             cursor = mysql.connection.cursor()
             cursor.execute('SELECT * FROM auth_usuarios WHERE email = %s', (email,))
             user_row = cursor.fetchone()
             cursor.close()
 
-            print("📊 Resultado:", user_row)
-
             if user_row:
                 return User(
-                    user_row['id_usuario'],  # ✔ CORRECTO
+                    user_row['id_usuario'],
                     user_row['nombre'],
                     user_row['email'],
                     user_row['password']
@@ -65,19 +53,19 @@ class User(UserMixin):
             return None
 
         except Exception as e:
-            print(f"❌ ERROR get_by_email: {e}")
+            print(f"ERROR get_by_email: {e}")
             return None
 
     # ========================================
-    # 🔍 BUSCAR POR ID (CRÍTICO PARA LOGIN)
+    # 🔍 BUSCAR POR ID (LOGIN)
     # ========================================
     @staticmethod
     def get(id):
-        try:
-            from conexion.conexion import mysql
-            cursor = mysql.connection.cursor()
+        if not mysql:
+            return None
 
-            # 🔥 CORREGIDO AQUÍ
+        try:
+            cursor = mysql.connection.cursor()
             cursor.execute('SELECT * FROM auth_usuarios WHERE id_usuario = %s', (id,))
             user_row = cursor.fetchone()
             cursor.close()
@@ -89,11 +77,10 @@ class User(UserMixin):
                     user_row['email'],
                     user_row['password']
                 )
-
             return None
 
         except Exception as e:
-            print(f"❌ ERROR get: {e}")
+            print(f"ERROR get: {e}")
             return None
 
     # ========================================
@@ -101,11 +88,12 @@ class User(UserMixin):
     # ========================================
     @staticmethod
     def create(nombre, email, password):
+        if not mysql:
+            return False
+
         try:
-            from conexion.conexion import mysql
             cursor = mysql.connection.cursor()
 
-            # 🔥 CORREGIDO AQUÍ
             cursor.execute('SELECT id_usuario FROM auth_usuarios WHERE email = %s', (email,))
             if cursor.fetchone():
                 cursor.close()
@@ -121,11 +109,11 @@ class User(UserMixin):
             mysql.connection.commit()
             cursor.close()
 
-            print("✅ Usuario creado")
+            print("Usuario creado")
             return True
 
         except Exception as e:
-            print(f"❌ ERROR create: {e}")
+            print(f"ERROR create: {e}")
             return False
 
 
@@ -136,20 +124,23 @@ class UserModel:
 
     @staticmethod
     def prueba_total():
+        if not mysql:
+            print("MySQL no disponible")
+            return
+
         try:
-            from conexion.conexion import mysql
             cursor = mysql.connection.cursor()
 
             cursor.execute("SELECT DATABASE()")
-            print("📌 DB actual:", cursor.fetchone())
+            print("DB actual:", cursor.fetchone())
 
             cursor.execute("SELECT COUNT(*) as total FROM auth_usuarios")
-            print("📊 TOTAL usuarios:", cursor.fetchone())
+            print("TOTAL usuarios:", cursor.fetchone())
 
             cursor.execute("SELECT * FROM auth_usuarios")
-            print("📋 REGISTROS:", cursor.fetchall())
+            print("REGISTROS:", cursor.fetchall())
 
             cursor.close()
 
         except Exception as e:
-            print("❌ ERROR DEBUG:", e)
+            print("ERROR DEBUG:", e)

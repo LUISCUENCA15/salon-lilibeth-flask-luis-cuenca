@@ -84,8 +84,8 @@ def servicios():
 # ========================================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if RENDER:
-        return "Login desactivado en Render (sin MySQL)"
+    if not MYSQL_AVAILABLE:
+        return "Login no disponible (MySQL no activo)"
 
     if request.method == 'POST':
         email = request.form['email'].strip()
@@ -249,6 +249,29 @@ def datos_sqlalchemy():
 def test():
     from flask_login import current_user
     return f"Usuario actual: {current_user.is_authenticated}"
+
+# ========================================
+# 🔍 BUSCADOR
+# ========================================
+@app.route('/buscar')
+def buscar():
+    query = request.args.get('q')
+
+    if not query:
+        return render_template('buscar.html', resultados=[])
+
+    resultados = buscar_producto(query)
+
+    return render_template('buscar.html', resultados=resultados, query=query)
+
+# ========================================
+# ❌ ELIMINAR PRODUCTO
+# ========================================
+@app.route('/eliminar/<int:id>')
+@login_required
+def eliminar(id):
+    eliminar_producto(id)
+    return redirect(url_for('admin_inventario'))
 
 # ========================================
 # RUN
